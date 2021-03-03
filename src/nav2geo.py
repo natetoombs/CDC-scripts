@@ -12,7 +12,7 @@ class NAV2GEO():
     def __init__(self):
         # Set up subscriber and publisher
         self.nav_sub = rospy.Subscriber('camera/odom/sample', Odometry, self.navCallback, queue_size=10)
-        self.geo_pub = rospy.Publisher('geo_odom', PoseStamped, queue_size=10)
+        self.geo_pub = rospy.Publisher('t265_ned', PoseStamped, queue_size=10)
 
         # Initialize geo_msg
         self.geo_msg = PoseStamped()
