@@ -22,13 +22,15 @@ class NAV2GEO():
             rospy.spin()
 
     def navCallback(self, nav_msg):
-        # NWU to NED
+        # NWU to NED SHOULD BE ALREADY DONE
         self.geo_msg.header = nav_msg.header
         self.geo_msg.pose.position.x = nav_msg.pose.pose.position.x
-        self.geo_msg.pose.position.y = -nav_msg.pose.pose.position.y
-        self.geo_msg.pose.position.z = -nav_msg.pose.pose.position.z
-
-        # Rotation
+        self.geo_msg.pose.position.y = nav_msg.pose.pose.position.y
+        self.geo_msg.pose.position.z = nav_msg.pose.pose.position.z
+        self.geo_msg.pose.orientation.x = nav_msg.pose.orientation.x
+        self.geo_msg.pose.orientation.y = nav_msg.pose.orientation.y
+        self.geo_msg.pose.orientation.z = nav_msg.pose.orientation.z
+        self.geo_msg.pose.orientation.w = nav_msg.pose.orientation.w
 
         # Publish message
         self.geo_pub.publish(self.geo_msg)
