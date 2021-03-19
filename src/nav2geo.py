@@ -27,10 +27,10 @@ class NAV2GEO():
         self.geo_msg.pose.position.x = nav_msg.pose.pose.position.x
         self.geo_msg.pose.position.y = nav_msg.pose.pose.position.y
         self.geo_msg.pose.position.z = nav_msg.pose.pose.position.z
-        self.geo_msg.pose.orientation.x = nav_msg.pose.orientation.x
-        self.geo_msg.pose.orientation.y = nav_msg.pose.orientation.y
-        self.geo_msg.pose.orientation.z = nav_msg.pose.orientation.z
-        self.geo_msg.pose.orientation.w = nav_msg.pose.orientation.w
+        self.geo_msg.pose.orientation.x = nav_msg.pose.pose.orientation.x
+        self.geo_msg.pose.orientation.y = nav_msg.pose.pose.orientation.y
+        self.geo_msg.pose.orientation.z = nav_msg.pose.pose.orientation.z
+        self.geo_msg.pose.orientation.w = nav_msg.pose.pose.orientation.w
 
         # Publish message
         self.geo_pub.publish(self.geo_msg)
