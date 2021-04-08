@@ -36,9 +36,9 @@ class NAV2GEO():
         self.geo_pub.publish(self.geo_msg)
 
 if __name__ == '__main__':
-    rospy.init_node('enu2ned', anonymous=True)
+    rospy.init_node('nav2geo', anonymous=True)
     try:
-        enu2ned = NAV2GEO()
+        nav2geo = NAV2GEO()
     except:
         rospy.ROSInterruptException
     pass
