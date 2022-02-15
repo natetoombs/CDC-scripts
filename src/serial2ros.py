@@ -11,7 +11,7 @@ class SERIAL2ROS():
         self.serial_pub = rospy.Publisher('laser_strength', Float64, queue_size=10)
         
         ap = argparse.ArgumentParser()
-        ap.add_argument("-p","--port",required = False, help = "Enter Port Name", default='dev\ttyUSB0')
+        ap.add_argument("-p","--port",required = False, help = "Enter Port Name", default='/dev/ttyUSB0')
         ap.add_argument("-b","--baudrate",required = False, help = "Enter Baudrate", default=9600)
         args = vars(ap.parse_args())
         
@@ -24,10 +24,12 @@ class SERIAL2ROS():
             serial_port = serial.Serial(port,rate)
             print(f"The Port name is {serial_port.name}")
             while not rospy.is_shutdown():
-                lines = serial_port.readline()
-                lines = lines.strip()
-                line = float(lines.decode("utf-8"))
-                self.serial_pub(line)
+                line = serial_port.readline()
+                line = line.strip()
+                line = line.decode("utf-8")
+                if line != '':
+                    line = float(line)
+                    self.serial_pub.publish(line)
         except:
             print("SERIAL2ROS ERROR")
             print("check port")
