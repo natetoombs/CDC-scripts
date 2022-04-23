@@ -21,7 +21,7 @@ class NAV2GEO():
         # wait for new messages and call the callback when they arrive
             rospy.spin()
 
-    def navCallback(self, nav_msg):
+    def navCallback(self, nav_msg): # TODO: Get Covariances!!!
         # NWU to NED SHOULD BE ALREADY DONE
         self.geo_msg.header = nav_msg.header
         self.geo_msg.pose.position.x = nav_msg.pose.pose.position.x
