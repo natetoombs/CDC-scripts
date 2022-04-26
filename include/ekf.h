@@ -32,3 +32,6 @@ ros::Publisher estimate_pub_;
 ros::Time time_prev_;
 
 nav_msgs::Odometry estimate_msg_;
+
+double altitude;
+double divergence;
