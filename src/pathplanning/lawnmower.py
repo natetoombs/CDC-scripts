@@ -10,20 +10,20 @@ class LAWNMOWER():
     def __init__(self):
         self.command_pub = rospy.Publisher('high_level_command', Command, queue_size=10)
 
-        altitude = -2
+        altitude = -0.7
 
         self.cmd_msg = Command()
         self.cmd_msg.mode = Command.MODE_NPOS_EPOS_DPOS_YAW
         self.cmd_msg.cmd3 = altitude
         self.cmd_msg.cmd4 = 0
 
-        corners = [[5,-2],[9,-2],[9,2],[5,2]]
-        density = 0.4
+        corners = [[-1,-1],[1,-1],[1,1],[-1,1]]
+        density = 0.25
 
         waypoints = self.generateWaypoints(corners,density)
 
-        dx = 0.1
-        dt = 0.12
+        dx = 0.03
+        dt = 0.1
 
         self.generateTrajectory(waypoints,dx,dt)
 
@@ -60,6 +60,14 @@ class LAWNMOWER():
     def generateTrajectory(self,waypoints,dx,dt):
     # Function that takes in waypoints and speed, and publishes a waypoint
     # command at every dt; assumes only N and E line directions
+
+        # Delay at first waypoint to stabilize before continuing
+        k = 0
+        while k < np.ceil(5.0/dt):
+            command = waypoints[0]
+            self.publish(command)
+            rospy.sleep(dt)
+            k+=1
 
         numEdges = len(waypoints) - 1
         i = 0

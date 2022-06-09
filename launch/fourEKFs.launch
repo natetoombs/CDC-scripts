@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+
+<launch>
+
+  <node name="ekf12" pkg="cdc-scripts" type="extended_kalman_filter">
+    <param name="divergence_deg" value="12.0"/>
+    <remap from="ekf_estimate" to="ekf12_estimate"/>
+  </node>
+
+    <node name="ekf17" pkg="cdc-scripts" type="extended_kalman_filter">
+    <param name="divergence_deg" value="17.0"/>
+    <remap from="ekf_estimate" to="ekf17_estimate"/>
+  </node>
+
+    <node name="ekf22" pkg="cdc-scripts" type="extended_kalman_filter">
+    <param name="divergence_deg" value="22.0"/>
+    <remap from="ekf_estimate" to="ekf22_estimate"/>
+  </node>
+
+    <node name="ekf27" pkg="cdc-scripts" type="extended_kalman_filter">
+    <param name="divergence_deg" value="27.0"/>
+    <remap from="ekf_estimate" to="ekf27_estimate"/>
+  </node>
+
+</launch>
