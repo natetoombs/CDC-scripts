@@ -17,9 +17,13 @@ class SERIAL2ROS():
         
         PORT = args['port']
         RATE = args['baudrate']
-        self.print_serial(PORT,RATE) 
+
+        self.attempts = 0
+        while self.attempts < 10:
+            self.print_serial(PORT,RATE) 
 
     def print_serial(self,port,rate):
+        self.attempts = self.attempts + 11
         try:
             serial_port = serial.Serial(port,rate)
             print(f"The Port name is {serial_port.name}")
@@ -33,7 +37,7 @@ class SERIAL2ROS():
         except:
             print("SERIAL2ROS ERROR")
             print("check port")
-            exit() 
+            self.attempts = self.attempts - 10
 
 if __name__ == '__main__':
     rospy.init_node('serial2ros', anonymous=True)
