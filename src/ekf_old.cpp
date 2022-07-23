@@ -12,7 +12,7 @@ int main(int argc, char **argv)
     ros::init(argc, argv, "extended_kalman_filter");
     ros::NodeHandle nh_;
 
-    nh_.param("divergence_deg",divergence,10.0);
+    nh_.param("divergence_deg",divergence,12.0);
 
     vel_sub_ = nh_.subscribe("camera/odom/sample", 100, velCallback);
     laser_sub_ = nh_.subscribe("laser_strength", 100, laserCallback);
@@ -21,39 +21,23 @@ int main(int argc, char **argv)
     // std::thread propagation(propagate);
 
     // Initialize x
-    x << 0.6 + 0.2, 0, 0.338, 0;            // r, rdot, theta, thetadot
+    x << 0.2, 0;
 
      // Initialize Q
-    double r_process_noise = 0.005;
-    double theta_process_noise = 0.005;
-    double rdot_process_noise = 0.01;
-    double theta_dot_process_noise = 0.01;
-    Q <<    r_process_noise, 0, 0, 0,
-            0, theta_process_noise, 0, 0,
-            0, 0, rdot_process_noise, 0,
-            0, 0, 0, theta_dot_process_noise; 
+    double pos_process_noise = 0.005;
+    double vel_process_noise = 0.02;
+    Q << pos_process_noise, 0, 0, vel_process_noise;
     
     // Initialize P
-    P <<    0.2, 0, 0, 0,
-            0, 0.1, 0, 0,
-            0, 0, 0.1, 0,
-            0, 0, 0, 0.1;
+    P << 0.5, 0, 0, 0.2;
     
     // Initialize R
-    double laser_cov = 0.08; // 0.08
-    double vel_cov = 0.1;
-    VectorXd meas_cov(3);
-    meas_cov << laser_cov, vel_cov, vel_cov;
+    double laser_cov = 0.025;
+    double vel_cov = 0.005;
+    VectorXd meas_cov(2);
+    meas_cov << laser_cov, vel_cov;
     R = meas_cov.asDiagonal();
-
-    // Initialize Things
-    z(1) = 0;
-    z(2) = 0;
-    altitude = 1.2;
-    x_uav = 0;
-    y_uav = 0;
-
-
+    
     time_prev_ = ros::Time::now();
     ros::spin();
 
@@ -66,12 +50,8 @@ int main(int argc, char **argv)
 void velCallback(const nav_msgs::OdometryConstPtr& msg)
 // Receive the IMU data, sort, send to calculateEstimate()
 {
-    z(1) = -msg->twist.twist.linear.x;
-    z(2) = -msg->twist.twist.linear.y;
-    altitude = 1.2; //-msg->pose.pose.position.z;
-
-    x_uav = msg->pose.pose.position.x;
-    y_uav = msg->pose.pose.position.y;
+    z(1) = msg->twist.twist.linear.y;
+    altitude = -msg->pose.pose.position.z;
 
     // propagate();
     // update();
@@ -94,8 +74,7 @@ void propagate()
     double dt = now.toSec() - time_prev_.toSec();
     time_prev_ = now;
     F = I;
-    F(0,2) = dt;
-    F(1,3) = dt;
+    F(0,1) = dt;
     x = F*x;
     P = F*P*F.transpose() + Q;
 }
@@ -131,19 +110,10 @@ void update()
 
 void publishEstimate()
 {
-    double x_rel = x(0)*cos(x(1));
-    double y_rel = x(0)*sin(x(1));
-
-    double x_rov = x_rel + x_uav;
-    double y_rov = y_rel + y_uav;
-    
     estimate_msg_.header.stamp = ros::Time::now();
-    estimate_msg_.pose.pose.position.x = x_rov;
-    estimate_msg_.pose.pose.position.y = y_rov;
-    // estimate_msg_.twist.twist.linear.x = x(1);
+    estimate_msg_.pose.pose.position.x = x(0);
+    estimate_msg_.twist.twist.linear.x = x(1);
     estimate_msg_.pose.covariance[0] = P(0,0);
-    estimate_msg_.pose.covariance[3] = P(1,1);
-
 
     estimate_pub_.publish(estimate_msg_);
 }
@@ -152,31 +122,22 @@ void setH()
 {
     double z = altitude;
     double theta = divergence*3.1415926535/180;
-    double n = 10;
-    double dIdr = 1.5*exp(-2*pow((x(0)/(z*sin(theta/2))),n))*-2*n/pow((z*sin(theta/2)),n)*pow(x(0),(n-1));
-    double dvxdr = -x(3)*sin(x(1));
-    double dvydr = x(3)*cos(x(1));
-    double dvxdtheta = -x(2)*sin(x(1)) - x(0)*x(3)*cos(x(1));
-    double dvydtheta = x(2)*cos(x(1)) - x(0)*x(3)*sin(x(1));
-    double dvxdrdot = cos(x(1));
-    double dvydrdot = sin(x(1));
-    double dvxdthetadot = -x(0)*sin(x(1));
-    double dvydthetadot = x(0)*cos(x(1));
-    H <<    dIdr, 0, 0, 0,
-            dvxdr, dvxdtheta, dvxdrdot, dvxdthetadot,
-            dvydr, dvydtheta, dvydrdot, dvydthetadot;
+    double n = 8;
+    double dIdx = 18.17/pow(z+8.13,2)*exp(-2*pow((x(0)/(z*sin(theta/2))),n))*-2*n/pow((z*sin(theta/2)),n)*pow(x(0),(n-1));
+    double dvdv = 1;
+    H << dIdx, 0,
+         0, dvdv;
 }
 
 void seth()
 {
     double z = altitude;
     double theta = divergence*3.1415926535/180;
-    double n = 10;
-    double I = 1.5*exp(-2*pow((x(0)/(z*sin(theta/2))),n));
-    double velx = x(2)*cos(x(1)) - x(0)*x(3)*sin(x(1));
-    double vely = x(2)*sin(x(1)) + x(0)*x(3)*cos(x(1));
+    double n = 8;
+    double I = 18.17/pow(z+8.13,2)*exp(-2*pow((x(0)/(z*sin(theta/2))),n));
+    double vel = x(1);
     
-    VectorXd h_temp(3);
-    h_temp << I, velx, vely;
+    VectorXd h_temp(2);
+    h_temp << I, vel;
     h = h_temp;
 }
