@@ -26,7 +26,7 @@ class POSITIONCONTROL():
         self.cmd_msg = Command()
         self.odom_msg = Odometry()
 
-        self.xyspeed = 1 # m/s
+        self.xyspeed = 0.75 # m/s
         self.zspeed = -0.5 # m/s
 
         self.z_pos = -2
@@ -60,49 +60,52 @@ class POSITIONCONTROL():
         # NWU to NED SHOULD BE ALREADY DONE
         if key_msg.K_w == 1:
             self.cmd_msg.mode = Command.MODE_NVEL_EVEL_DPOS_YAWRATE
-            self.cmd_msg.cmd1 = self.xyspeed
-            self.cmd_msg.cmd2 = 0
-            self.cmd_msg.cmd3 = self.hold_pos[2]
-            self.cmd_msg.cmd4 = 0
+            self.cmd_msg.cmd1 = self.xyspeed #*np.cos(self.current_pos[3])
+            self.cmd_msg.cmd2 = 0 #self.xyspeed*np.sin(self.current_pos[3])
+            self.cmd_msg.cmd3 = self.z_pos
+            self.cmd_msg.cmd4 = -0.5*self.current_pos[3]
+            self.hold_pos = self.current_pos
         elif key_msg.K_s == 1:
             self.cmd_msg.mode = Command.MODE_NVEL_EVEL_DPOS_YAWRATE
-            self.cmd_msg.cmd1 = -self.xyspeed
-            self.cmd_msg.cmd2 = 0
-            self.cmd_msg.cmd3 = self.hold_pos[2]
-            self.cmd_msg.cmd4 = 0
+            self.cmd_msg.cmd1 = -self.xyspeed #*np.cos(self.current_pos[3])
+            self.cmd_msg.cmd2 = 0 #-self.xyspeed*np.sin(self.current_pos[3])
+            self.cmd_msg.cmd3 = self.z_pos
+            self.cmd_msg.cmd4 = -0.5*self.current_pos[3]
+            self.hold_pos = self.current_pos
         elif key_msg.K_d == 1:
             self.cmd_msg.mode = Command.MODE_NVEL_EVEL_DPOS_YAWRATE
-            self.cmd_msg.cmd1 = 0
-            self.cmd_msg.cmd2 = self.xyspeed
-            self.cmd_msg.cmd3 = self.hold_pos[2]
-            self.cmd_msg.cmd4 = 0
+            self.cmd_msg.cmd1 = 0 #self.xyspeed*np.sin(self.current_pos[3])
+            self.cmd_msg.cmd2 = self.xyspeed #*np.cos(self.current_pos[3])
+            self.cmd_msg.cmd3 = self.z_pos
+            self.cmd_msg.cmd4 = -0.5*self.current_pos[3]
+            self.hold_pos = self.current_pos
         elif key_msg.K_a == 1:
             self.cmd_msg.mode = Command.MODE_NVEL_EVEL_DPOS_YAWRATE
-            self.cmd_msg.cmd1 = 0
-            self.cmd_msg.cmd2 = -self.xyspeed
-            self.cmd_msg.cmd3 = self.hold_pos[2]
-            self.cmd_msg.cmd4 = 0
+            self.cmd_msg.cmd1 = 0 #-self.xyspeed*np.sin(self.current_pos[3])
+            self.cmd_msg.cmd2 = -self.xyspeed #*np.cos(self.current_pos[3])
+            self.cmd_msg.cmd3 = self.z_pos
+            self.cmd_msg.cmd4 = -0.5*self.current_pos[3]
+            self.hold_pos = self.current_pos
         elif key_msg.K_e == 1:
             self.cmd_msg.mode = Command.MODE_NPOS_EPOS_DVEL_YAW
             self.cmd_msg.cmd1 = self.hold_pos[0]
             self.cmd_msg.cmd2 = self.hold_pos[1]
             self.cmd_msg.cmd3 = self.zspeed
-            self.cmd_msg.cmd4 = self.hold_pos[3]
+            self.cmd_msg.cmd4 = 0 #self.hold_pos[3]
             self.z_pos        = self.current_pos[2]
         elif key_msg.K_q == 1:
             self.cmd_msg.mode = Command.MODE_NPOS_EPOS_DVEL_YAW
             self.cmd_msg.cmd1 = self.hold_pos[0]
             self.cmd_msg.cmd2 = self.hold_pos[1]
             self.cmd_msg.cmd3 = -self.zspeed
-            self.cmd_msg.cmd4 = self.hold_pos[3]
+            self.cmd_msg.cmd4 = 0 #self.hold_pos[3]
             self.z_pos        = self.current_pos[2]
         else:
-            self.hold_pos = self.current_pos
             self.cmd_msg.mode = Command.MODE_NPOS_EPOS_DPOS_YAW
             self.cmd_msg.cmd1 = self.hold_pos[0]
             self.cmd_msg.cmd2 = self.hold_pos[1]
             self.cmd_msg.cmd3 = self.z_pos
-            self.cmd_msg.cmd4 = self.hold_pos[3]
+            self.cmd_msg.cmd4 = 0 #self.hold_pos[3]
         
         self.publish()
 
